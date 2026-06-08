@@ -18,15 +18,15 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.3.14
 
-      - run: bun install
+      - run: bun install --frozen-lockfile
 
       - name: Type-check and build
         run: bun run build
 
       - name: Run tests
-        run: bun run test
+        run: bun run test --run
 
   rust:
     name: Rust build & test (Linux)
@@ -53,11 +53,76 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
-      - run: bun install
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
       - name: Bundle plugins
         run: bun run bundle:plugins
+
+      - name: Cargo fmt
+        working-directory: src-tauri
+        run: cargo fmt --all -- --check
 
       - name: Cargo test
         working-directory: src-tauri
         run: cargo test --locked
+
+  linux-package:
+    name: Linux Tauri package build
+    runs-on: ubuntu-22.04
+    env:
+      # GitHub runners lack FUSE; make linuxdeploy/AppImage tooling extract-and-run.
+      APPIMAGE_EXTRACT_AND_RUN: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libsecret-1-dev \
+            build-essential \
+            rpm
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+
+      - name: Build Linux packages
+        run: |
+          bun tauri build --ci --no-sign --bundles deb,rpm,appimage \
+            --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Verify Linux package artifacts
+        run: |
+          test -n "$(find src-tauri/target/release/bundle/deb -maxdepth 1 -name '*.deb' -print -quit)"
+          test -n "$(find src-tauri/target/release/bundle/rpm -maxdepth 1 -name '*.rpm' -print -quit)"
+          test -n "$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' -print -quit)"
+
+      - name: Inspect Linux packages
+        run: |
+          DEB=$(find src-tauri/target/release/bundle/deb -maxdepth 1 -name '*.deb' -print -quit)
+          RPM=$(find src-tauri/target/release/bundle/rpm -maxdepth 1 -name '*.rpm' -print -quit)
+          APPIMAGE=$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' -print -quit)
+
+          dpkg-deb --info "$DEB"
+          dpkg-deb --contents "$DEB" | grep -E 'OpenUsage|openusage|\.desktop'
+
+          rpm -qip "$RPM"
+          rpm -qlp "$RPM" | grep -E 'OpenUsage|openusage|\.desktop'
+
+          chmod +x "$APPIMAGE"
+          "$APPIMAGE" --appimage-extract >/dev/null
+          test -d squashfs-root
