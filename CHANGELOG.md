@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.6.28
+
+### Chores
+- style: update sidebar accent color by @symonbaikov
+
+---
+
+### Changelog
+
+**Full Changelog**: [v0.6.27...v0.6.28](https://github.com/openusage-community/openusage/compare/v0.6.27...v0.6.28)
+
+- [57828c8](https://github.com/openusage-community/openusage/commit/57828c827364a1bbb04f7b60a16f23ecb9b1f7fd) style: update sidebar accent color by @symonbaikov
+
 ## v0.6.27
 
 ### Bug Fixes
