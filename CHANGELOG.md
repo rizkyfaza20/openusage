@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.6.30
+
+### Bug Fixes
+- fix: update help issues link by @symonbaikov
+
+---
+
+### Changelog
+
+**Full Changelog**: [v0.6.29...v0.6.30](https://github.com/openusage-community/openusage/compare/v0.6.29...v0.6.30)
+
+- [b92ee67](https://github.com/openusage-community/openusage/commit/b92ee67422bdfd30b92285db7946c2be72d57106) fix: update help issues link by @symonbaikov
+
 ## v0.6.29
 
 ### Bug Fixes
