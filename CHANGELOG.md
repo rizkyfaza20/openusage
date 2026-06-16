@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.6.31
+
+### New Features
+- Add usage history export ([#16](https://github.com/openusage-community/openusage/pull/16)) by @symonbaikov
+
+---
+
+### Changelog
+
+**Full Changelog**: [v0.6.30...v0.6.31](https://github.com/openusage-community/openusage/compare/v0.6.30...v0.6.31)
+
+- [4d3427d](https://github.com/openusage-community/openusage/commit/4d3427da986dde7a5121bafb0e10718036ed6fe6) Merge pull request #16 from openusage-community/codex/export-usage-statistics by @symonbaikov
+- [f1a0bec](https://github.com/openusage-community/openusage/commit/f1a0bec) Update Bun lockfile by @symonbaikov
+- [141de6b](https://github.com/openusage-community/openusage/commit/141de6b0e6323eae2185bbd83e605c4ce69aaa0c) Add usage history export by @symonbaikov
+
 ## v0.6.30
 
 ### Bug Fixes

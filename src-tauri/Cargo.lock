@@ -3228,7 +3228,7 @@ dependencies = [
 
 [[package]]
 name = "openusage"
-version = "0.6.30"
+version = "0.6.31"
 dependencies = [
  "aes-gcm",
  "base64 0.22.1",
@@ -3263,7 +3263,6 @@ dependencies = [
  "time",
  "tokio",
  "uuid",
- "x11rb",
  "zip 8.6.0",
 ]
 
