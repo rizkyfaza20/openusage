@@ -104,6 +104,7 @@ Progress bars, badges, clear labels. No mental math required.
 * **One glance.** All your AI tools in one panel.
 * **Always up to date.** Refreshes automatically on a schedule you pick.
 * **Global shortcut.** Toggle the panel from anywhere with a customizable keyboard shortcut.
+* **Usage export.** Download locally collected usage history as CSV or Excel.
 * **Lightweight.** Opens quickly and stays out of your way.
 * **Plugin-based.** New providers can be added without changing the whole app.
 * **[Local HTTP API](docs/local-http-api.md).** Other apps can read your usage data from `127.0.0.1:6736`.
