@@ -236,13 +236,22 @@ pub fn cache_successful_output(output: &PluginOutput) {
         display_name: output.display_name.clone(),
         plan: output.plan.clone(),
         lines: output.lines.clone(),
-        fetched_at,
+        fetched_at: fetched_at.clone(),
     };
 
-    let mut state = cache_state().lock().expect("cache state poisoned");
-    state.snapshots.insert(output.provider_id.clone(), snapshot);
-    state.dirty_generation = state.dirty_generation.wrapping_add(1);
-    schedule_cache_flush_locked(&mut state);
+    let app_data_dir = {
+        let mut state = cache_state().lock().expect("cache state poisoned");
+        state.snapshots.insert(output.provider_id.clone(), snapshot);
+        state.dirty_generation = state.dirty_generation.wrapping_add(1);
+        schedule_cache_flush_locked(&mut state);
+        state.app_data_dir.clone()
+    };
+
+    if let Err(error) =
+        super::usage_history::record_successful_output(&app_data_dir, output, &fetched_at)
+    {
+        log::warn!("failed to record usage history: {}", error);
+    }
 }
 
 pub fn flush_cache() {

@@ -41,6 +41,8 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 regex-lite = "0.1.9"
 aes-gcm = "0.10.3"
 sha2 = "0.11"
+rust_xlsxwriter = "0.95.0"
+tauri-plugin-dialog = "2.7.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 x11rb = "0.13.2"
@@ -55,3 +57,4 @@ objc2-web-kit = { version = "0.3", features = ["WKPreferences", "WKWebView", "WK
 
 [dev-dependencies]
 serial_test = "3.4.0"
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }

@@ -393,6 +393,38 @@ fn get_log_path(app_handle: tauri::AppHandle) -> Result<String, String> {
     Ok(log_file.to_string_lossy().to_string())
 }
 
+#[tauri::command]
+fn list_usage_history_range(
+    state: tauri::State<'_, Mutex<AppState>>,
+) -> Result<local_http_api::UsageHistoryRange, String> {
+    let app_data_dir = {
+        let locked = state.lock().map_err(|e| e.to_string())?;
+        locked.app_data_dir.clone()
+    };
+    Ok(local_http_api::list_usage_history_range(&app_data_dir))
+}
+
+#[tauri::command]
+fn export_usage_history(
+    state: tauri::State<'_, Mutex<AppState>>,
+    format: local_http_api::ExportFormat,
+    from_date: String,
+    to_date: String,
+    path: String,
+) -> Result<local_http_api::ExportUsageHistoryResult, String> {
+    let app_data_dir = {
+        let locked = state.lock().map_err(|e| e.to_string())?;
+        locked.app_data_dir.clone()
+    };
+    local_http_api::export_history(
+        &app_data_dir,
+        format,
+        &from_date,
+        &to_date,
+        &PathBuf::from(path),
+    )
+}
+
 /// Update the global shortcut registration.
 /// Pass `null` to disable the shortcut, or a shortcut string like "CommandOrControl+Shift+U".
 #[cfg(desktop)]
@@ -511,6 +543,7 @@ pub fn run() {
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_aptabase::Builder::new("A-US-6435241436").build())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build());
 
@@ -542,6 +575,8 @@ pub fn run() {
             start_probe_batch,
             list_plugins,
             get_log_path,
+            list_usage_history_range,
+            export_usage_history,
             update_global_shortcut
         ])
         .setup(|app| {

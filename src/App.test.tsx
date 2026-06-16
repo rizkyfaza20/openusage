@@ -48,6 +48,10 @@ const updaterState = vi.hoisted(() => ({
   relaunchMock: vi.fn(async () => undefined),
 }))
 
+const dialogState = vi.hoisted(() => ({
+  saveMock: vi.fn(),
+}))
+
 const eventState = vi.hoisted(() => {
   const handlers = new Map<string, (event: any) => void>()
   return {
@@ -205,6 +209,10 @@ vi.mock("@tauri-apps/plugin-autostart", () => ({
   isEnabled: state.autostartIsEnabledMock,
 }))
 
+vi.mock("@tauri-apps/plugin-dialog", () => ({
+  save: dialogState.saveMock,
+}))
+
 vi.mock("@/lib/tray-bars-icon", async () => {
   const actual = await vi.importActual<typeof import("@/lib/tray-bars-icon")>("@/lib/tray-bars-icon")
   return {
@@ -303,7 +311,9 @@ describe("App", () => {
     eventState.listenMock.mockReset()
     updaterState.checkMock.mockReset()
     updaterState.relaunchMock.mockReset()
+    dialogState.saveMock.mockReset()
     updaterState.checkMock.mockResolvedValue(null)
+    dialogState.saveMock.mockResolvedValue(null)
     state.savePluginSettingsMock.mockResolvedValue(undefined)
     state.saveAutoUpdateIntervalMock.mockResolvedValue(undefined)
     state.loadThemeModeMock.mockResolvedValue("system")
@@ -719,6 +729,36 @@ describe("App", () => {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
     await waitFor(() => {
       expect(screen.queryByText("Built by")).not.toBeInTheDocument()
+    })
+  })
+
+  it("exports usage history through the app footer", async () => {
+    state.invokeMock.mockImplementation(async (cmd: string) => {
+      if (cmd === "list_plugins") {
+        return [
+          { id: "a", name: "Alpha", iconUrl: "icon-a", primaryCandidates: [], lines: [{ type: "text", label: "Now", scope: "overview" }] },
+        ]
+      }
+      if (cmd === "list_usage_history_range") {
+        return { fromDate: "2026-06-14", toDate: "2026-06-16", rowCount: 2 }
+      }
+      if (cmd === "export_usage_history") {
+        return { rowCount: 2 }
+      }
+      return null
+    })
+    dialogState.saveMock.mockResolvedValueOnce("/tmp/openusage.csv")
+
+    render(<App />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Export usage" }))
+    await userEvent.click(await screen.findByRole("button", { name: "Save" }))
+
+    expect(state.invokeMock).toHaveBeenCalledWith("export_usage_history", {
+      format: "csv",
+      fromDate: "2026-06-14",
+      toDate: "2026-06-16",
+      path: "/tmp/openusage.csv",
     })
   })
 
