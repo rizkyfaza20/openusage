@@ -32,7 +32,7 @@ WHERE json_valid(model)
   AND cost > 0
 ```
 
-Only sessions with a positive cost count. Missing remote or other-device usage is not estimated.
+Only sessions with a positive cost count. `time_updated` is stored in milliseconds (same unit as `Date.now()`), confirmed from OpenCode's `session` table schema. Missing remote or other-device usage is not estimated.
 
 ## Limits
 

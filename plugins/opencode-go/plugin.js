@@ -184,6 +184,7 @@
   }
 
   function loadHistory(ctx) {
+    // time_updated is in milliseconds (same unit as Date.now()), confirmed from OpenCode source
     const result = queryRows(ctx, HISTORY_ROWS_SQL);
     if (!result.ok) return result;
 
