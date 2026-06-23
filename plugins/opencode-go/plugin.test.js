@@ -233,6 +233,24 @@ describe("opencode-go plugin", () => {
     });
   });
 
+  it("parses fractional costs from CAST(cost AS TEXT) without integer truncation", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
+
+    const ctx = makeCtx();
+    // cost as a small decimal that would floor to 0 if truncated to integer
+    setHistoryQuery(ctx, [
+      { createdMs: Date.parse("2026-03-06T11:00:00.000Z"), cost: 0.7 },
+    ]);
+
+    const plugin = await loadPlugin();
+    const result = plugin.probe(ctx);
+
+    // 0.7 / 12 * 100 = 5.83 → Math.floor = 5
+    // If QuickJS truncated 0.7 to 0, this would be 0
+    expect(result.lines[0].used).toBe(5);
+  });
+
   it("returns a soft empty state when sqlite returns malformed JSON and auth exists", async () => {
     const ctx = makeCtx();
     setAuth(ctx);

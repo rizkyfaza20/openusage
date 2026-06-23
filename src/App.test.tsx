@@ -468,6 +468,18 @@ describe("App", () => {
     await screen.findByText("Now")
   })
 
+  it("triggers refresh on visibilitychange when panel becomes visible", async () => {
+    render(<App />)
+    await waitFor(() => expect(state.startBatchMock).toHaveBeenCalled())
+    state.startBatchMock.mockClear()
+
+    // Simulate panel becoming visible (document.hidden = false)
+    Object.defineProperty(document, "hidden", { configurable: true, value: false })
+    fireEvent(document, new Event("visibilitychange"))
+
+    await waitFor(() => expect(state.startBatchMock).toHaveBeenCalled())
+  })
+
   it("updates tray icon on probe results when plugin has a primary progress", async () => {
     state.invokeMock.mockImplementation(async (cmd: string) => {
       if (cmd === "list_plugins") {
