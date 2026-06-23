@@ -17,6 +17,8 @@ type ProbeBatchStarted = {
   pluginIds: string[]
 }
 
+export const BACKGROUND_BATCH_ID = "background"
+
 type UseProbeEventsOptions = {
   onResult: (output: PluginOutput) => void
   onBatchComplete: () => void
@@ -38,7 +40,7 @@ export function useProbeEvents({ onResult, onBatchComplete }: UseProbeEventsOpti
 
     const setup = async () => {
       const resultUnlisten = await listen<ProbeResult>("probe:result", (event) => {
-        if (activeBatchIds.current.has(event.payload.batchId)) {
+        if (activeBatchIds.current.has(event.payload.batchId) || event.payload.batchId === BACKGROUND_BATCH_ID) {
           onResult(event.payload.output)
         }
       })

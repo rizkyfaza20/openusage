@@ -255,6 +255,17 @@ function App() {
     [pluginStates]
   )
 
+  useEffect(() => {
+    const refreshOnShow = () => {
+      if (!document.hidden) {
+        startBatch()
+      }
+    }
+
+    document.addEventListener("visibilitychange", refreshOnShow)
+    return () => document.removeEventListener("visibilitychange", refreshOnShow)
+  }, [startBatch])
+
   return (
     <AppShell
       onRefreshAll={handleRefreshAll}
