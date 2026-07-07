@@ -88,6 +88,23 @@ describe("ProviderCard", () => {
     expect(container.querySelector("svg.animate-spin")).toBeTruthy()
   })
 
+  it("keeps provider names on one line in narrow header space", () => {
+    render(
+      <div className="w-20">
+        <ProviderCard
+          name="Codex"
+          displayMode="used"
+          plan="$2,037.80"
+        />
+      </div>
+    )
+
+    expect(screen.getByRole("heading", { name: "Codex" })).toHaveClass(
+      "truncate",
+      "whitespace-nowrap"
+    )
+  })
+
   it("renders metric lines + progress formats", () => {
     render(
       <ProviderCard

@@ -183,9 +183,15 @@ export function ProviderCard({
   return (
     <div>
       <div className="py-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="relative flex items-center">
-            <h2 className="text-lg font-semibold" style={{ transform: "translateZ(0)" }}>{name}</h2>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="relative flex min-w-0 flex-1 items-center">
+            <h2
+              className="min-w-0 truncate whitespace-nowrap text-lg font-semibold"
+              style={{ transform: "translateZ(0)" }}
+              title={name}
+            >
+              {name}
+            </h2>
             {onRetry && (
               loading ? (
                 <Button
