@@ -31,17 +31,31 @@ This project is independent from the original OpenUsage project. It exists becau
 
 ## Download
 
-[**Download the latest release**](https://github.com/openusage-community/openusage/releases/latest)
+macOS:
+
+```sh
+brew install --cask openusage-community/openusage/openusage
+```
+
+Linux: [**Download the latest release**](https://github.com/openusage-community/openusage/releases/latest)
 
 Available builds:
 
-* macOS Apple Silicon
-* macOS Intel
 * Linux AppImage
 * Linux `.deb`
 * Linux `.rpm`
 
 The app auto-updates where supported. Install once and you're set.
+
+## Install on macOS
+
+Use Homebrew:
+
+```sh
+brew install --cask openusage-community/openusage/openusage
+```
+
+OpenUsage is currently unsigned on macOS. The Homebrew cask removes the quarantine flag after install so the app can open normally.
 
 ## Linux Notes
 

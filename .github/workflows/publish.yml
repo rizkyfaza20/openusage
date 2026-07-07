@@ -16,10 +16,10 @@ jobs:
       matrix:
         include:
           - platform: macos-latest
-            args: "--target aarch64-apple-darwin"
+            args: "--target aarch64-apple-darwin --bundles app"
             rust_targets: "aarch64-apple-darwin"
           - platform: macos-latest
-            args: "--target x86_64-apple-darwin"
+            args: "--target x86_64-apple-darwin --bundles app"
             rust_targets: "x86_64-apple-darwin"
           - platform: ubuntu-22.04
             args: ""
@@ -102,81 +102,12 @@ jobs:
             exit 1
           fi
 
-      - name: Validate Apple signing secrets
-        if: runner.os == 'macOS'
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          missing=()
-          [[ -n "$APPLE_CERTIFICATE" ]] || missing+=("APPLE_CERTIFICATE")
-          [[ -n "$APPLE_CERTIFICATE_PASSWORD" ]] || missing+=("APPLE_CERTIFICATE_PASSWORD")
-          [[ -n "$KEYCHAIN_PASSWORD" ]] || missing+=("KEYCHAIN_PASSWORD")
-          [[ -n "$APPLE_ID" ]] || missing+=("APPLE_ID")
-          [[ -n "$APPLE_PASSWORD" ]] || missing+=("APPLE_PASSWORD")
-          [[ -n "$APPLE_TEAM_ID" ]] || missing+=("APPLE_TEAM_ID")
-
-          if [[ "${#missing[@]}" -gt 0 ]]; then
-            printf 'Missing Apple signing secret: %s\n' "${missing[@]}"
-            exit 1
-          fi
-
-      - name: Import Apple Developer Certificate & enable signing
-        if: runner.os == 'macOS'
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: |
-          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security set-keychain-settings -t 3600 -u build.keychain
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          rm certificate.p12
-
-          IDENTITIES=$(security find-identity -v -p codesigning build.keychain)
-          printf '%s\n' "$IDENTITIES"
-
-          if [[ -n "$APPLE_SIGNING_IDENTITY" ]]; then
-            CERT_ID="$APPLE_SIGNING_IDENTITY"
-            if ! printf '%s\n' "$IDENTITIES" | grep -Fq "\"$CERT_ID\""; then
-              echo "APPLE_SIGNING_IDENTITY was not found in build.keychain."
-              exit 1
-            fi
-          else
-            CERT_ID=$(printf '%s\n' "$IDENTITIES" | awk -F'"' '/Developer ID Application/ { print $2; exit }')
-          fi
-
-          if [[ -z "$CERT_ID" ]]; then
-            echo "No Developer ID Application signing identity found."
-            exit 1
-          fi
-          if [[ "$CERT_ID" != Developer\ ID\ Application:* ]]; then
-            echo "Signing identity must be a Developer ID Application certificate."
-            exit 1
-          fi
-
-          echo "APPLE_SIGNING_IDENTITY=$CERT_ID" >> "$GITHUB_ENV"
-
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: ${{ env.RELEASE_TAG }}
           releaseName: ${{ env.RELEASE_TAG }}
@@ -185,7 +116,7 @@ jobs:
           includeUpdaterJson: true
           args: ${{ matrix.args }}
 
-      - name: Verify macOS code signature
+      - name: Verify macOS app bundle
         if: runner.os == 'macOS'
         run: |
           APP=$(find src-tauri/target -path '*/release/bundle/macos/OpenUsage.app' -print -quit)
@@ -194,8 +125,7 @@ jobs:
             exit 1
           fi
 
-          codesign --verify --deep --strict --verbose=4 "$APP"
-          spctl --assess --type execute --verbose=4 "$APP"
+          test -x "$APP/Contents/MacOS/openusage"
 
       - name: Verify updater assets uploaded
         env:
