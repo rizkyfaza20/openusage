@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.6.35
+
+### New Features
+- feat: add total spend chart by @Symon
+
+---
+
+### Changelog
+
+**Full Changelog**: [v0.6.34...v0.6.35](https://github.com/openusage-community/openusage/compare/v0.6.34...v0.6.35)
+
+- [b028a84](https://github.com/openusage-community/openusage/commit/b028a847ed0a99858511751e93472a42d138ab69) feat: add total spend chart by @Symon
+
 ## v0.6.34
 
 ### Bug Fixes
